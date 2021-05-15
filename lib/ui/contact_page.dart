@@ -66,14 +66,16 @@ class _ContactPageState extends State<ContactPage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     image: DecorationImage(
-                      image: _editedContact.img != null
-                          ? FileImage(File(_editedContact.img))
-                          : AssetImage("images/person.png"),
-                    ),
+                        image: _editedContact.img != null
+                            ? FileImage(File(_editedContact.img))
+                            : AssetImage("images/person.png"),
+                        fit: BoxFit.cover),
                   ),
                 ),
-                onTap: () {
-                  ImagePicker.pickImage(source: ImageSource.camera)
+                onTap: () async {
+                  // ignore: invalid_use_of_visible_for_testing_member
+                  ImagePicker.platform
+                      .pickImage(source: ImageSource.camera)
                       .then((file) {
                     if (file == null) return;
                     setState(() {
