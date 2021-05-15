@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:agenda_de_contatos/helpers/contact_helper.dart';
+import 'package:agenda_de_contatos/ui/contact_page.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -17,11 +19,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
-    helper.getAllContact().then((list) {
-      setState(() {
-        contacts = list;
-      });
-    });
+    _getAllContacts();
   }
 
   @override
@@ -34,7 +32,9 @@ class _HomePageState extends State<HomePage> {
       ),
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          _showContactPage();
+        },
         child: Icon(Icons.add),
         backgroundColor: Colors.indigo,
       ),
@@ -92,6 +92,92 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
+      onTap: () {
+        _showOptions(context, index);
+      },
     );
+  }
+
+  void _showOptions(BuildContext context, int index) {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return BottomSheet(
+              onClosing: () {},
+              builder: (context) {
+                return Container(
+                  padding: EdgeInsets.all(10.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.all(10.0),
+                        child: TextButton(
+                          child: Text("Ligar",
+                              style: TextStyle(
+                                  color: Colors.indigo, fontSize: 20.0)),
+                          onPressed: () {
+                            launch("tel:${contacts[index].phone}");
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(10.0),
+                        child: TextButton(
+                          child: Text("Editar",
+                              style: TextStyle(
+                                  color: Colors.indigo, fontSize: 20.0)),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _showContactPage(contact: contacts[index]);
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(10.0),
+                        child: TextButton(
+                          child: Text("Excluir",
+                              style: TextStyle(
+                                  color: Colors.indigo, fontSize: 20.0)),
+                          onPressed: () {
+                            helper.deleteContact(contacts[index].id);
+                            setState(() {
+                              contacts.removeAt(index);
+                              Navigator.pop(context);
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              });
+        });
+  }
+
+  void _showContactPage({Contact contact}) async {
+    final recContact = await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ContactPage(
+                  contact: contact,
+                )));
+    if (recContact != null) {
+      if (contact != null) {
+        await helper.updateContac(recContact);
+      } else {
+        await helper.saveContact(recContact);
+      }
+      _getAllContacts();
+    }
+  }
+
+  void _getAllContacts() {
+    helper.getAllContact().then((list) {
+      setState(() {
+        contacts = list;
+      });
+    });
   }
 }
